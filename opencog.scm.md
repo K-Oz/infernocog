@@ -2,6 +2,18 @@
 
 This document describes the OpenCog cognitive architecture integration with InfernoCog (Inferno OS).
 
+## Prerequisites
+
+Before installing the OpenCog stack, ensure you have:
+
+- **GNU Guix**: Package manager for reproducible builds
+- **Git**: Version control system for source code access  
+- **CMake**: Build system (≥ 3.12)
+- **GCC**: C++ compiler with C++17 support
+- **Boost**: C++ libraries (≥ 1.65)
+- **Python**: Python interpreter (≥ 3.6) for bindings
+- **Guile**: Scheme interpreter (≥ 3.0) for scripting
+
 ## Overview
 
 OpenCog is an open-source artificial general intelligence (AGI) framework that combines multiple AI paradigms including:
@@ -31,6 +43,8 @@ Foundational utilities and data structures for OpenCog:
     (home-page "https://github.com/opencog/cogutil")
     (license lgpl2.1+)))
 ```
+
+**Note**: The SHA256 hashes in the actual package definitions are currently placeholders (all zeros) and must be updated with correct values for production use.
 
 ### 2. AtomSpace (`atomspace@5.0.3-1.86c848d`)
 
@@ -167,13 +181,75 @@ mount -t 9p opencog-server /n/opencog
 echo "load-atomspace /data/knowledge.scm" > /n/opencog/ctl
 ```
 
+## Testing
+
+After installation, verify the OpenCog stack works correctly:
+
+```bash
+# Test basic AtomSpace functionality
+guile -c "(use-modules (opencog)) (cog-atomspace)"
+
+# Test CogServer connection
+telnet localhost 17001
+
+# Run basic pattern matching
+echo "(use-modules (opencog)) (cog-evaluate! (Concept \"test\"))" | guile
+```
+
 ## Development
 
 For developing OpenCog applications on InfernoCog:
 
-1. Use the complete manifest for development environment
-2. OpenCog atoms can be exposed as Inferno files
-3. Reasoning processes run as Inferno services
-4. Knowledge bases stored in Inferno file systems
+1. **Set up development environment**:
+   ```bash
+   guix shell -m manifest.scm
+   ```
+
+2. **Update package versions**:
+   - Modify commit hashes in `opencog.scm`
+   - Update SHA256 checksums: `guix hash -x <source-dir>`
+   - Test changes: `guix build -f opencog.scm`
+
+3. **OpenCog atoms can be exposed as Inferno files**
+4. **Reasoning processes run as Inferno services**  
+5. **Knowledge bases stored in Inferno file systems**
+
+### Development Workflow
+
+```bash
+# Clone and modify OpenCog components
+git clone https://github.com/opencog/cogutil
+cd cogutil && git log --oneline -n 5  # Get latest commit
+
+# Update opencog.scm with new commit hash
+# Rebuild and test
+guix build cogutil -f opencog.scm
+```
+
+## Troubleshooting
+
+### Common Issues
+
+**Build failures**:
+- Ensure all prerequisites are installed
+- Check CMake version compatibility (≥ 3.12)
+- Verify Boost library version (≥ 1.65)
+
+**Missing dependencies**:
+```bash
+# Install missing system dependencies
+guix install cmake boost python pkg-config
+```
+
+**SHA256 mismatch errors**:
+```bash
+# Update checksums for modified sources
+guix hash -x /path/to/opencog/source
+```
+
+**CogServer connection issues**:
+- Verify port 17001 is available
+- Check firewall settings
+- Ensure AtomSpace is properly initialized
 
 This architecture provides a robust foundation for distributed artificial general intelligence systems.

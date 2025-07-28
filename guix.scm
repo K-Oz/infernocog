@@ -13,9 +13,9 @@
              (gnu packages fontutils)
              (gnu packages compression))
 
-(define-public opencog
+(define-public infernocog-base
   (package
-    (name "opencog")
+    (name "infernocog-base")
     (version "1.0.0")
     (source (local-file "." "inferno-source" #:recursive? #t
                         #:select? (lambda (file stat)
@@ -94,9 +94,9 @@
                  (copy-recursively "man"
                                    (string-append out "/share/man")))
                ;; Install documentation
-               (mkdir-p (string-append out "/share/doc/opencog"))
-               (install-file "README.md" (string-append out "/share/doc/opencog"))
-               (install-file "INSTALL" (string-append out "/share/doc/opencog"))
+               (mkdir-p (string-append out "/share/doc/infernocog-base"))
+               (install-file "README.md" (string-append out "/share/doc/infernocog-base"))
+               (install-file "INSTALL" (string-append out "/share/doc/infernocog-base"))
                #t))))))
     (native-inputs
      `(("gcc" ,gcc)))
@@ -113,5 +113,5 @@ development.")
     (home-page "https://github.com/K-Oz/infernocog")
     (license (list gpl2+ lgpl2.1+))))
 
-;; Return the package for use with 'guix install -f guix.scm'
-opencog
+;; Return the base package for 'guix install -f guix.scm'
+infernocog-base

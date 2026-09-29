@@ -58,7 +58,7 @@ guix install -f cogutil.scm
 guix install -L . cogutil@2.0.3-1.b07b41b
 ```
 
-**Note**: The SHA256 hashes for `cogutil@2.0.3-1.b07b41b` and `atomspace@5.0.3-1.86c848d` are the GNU Guix git-fetch checksums. Other OpenCog packages in `opencog.scm` may still use placeholder hashes until their install issues are completed.
+**Note**: The SHA256 hashes for `cogutil@2.0.3-1.b07b41b`, `atomspace@5.0.3-1.86c848d`, and `cogserver@0-2.ec5f3b9` are the GNU Guix git-fetch checksums. Other OpenCog packages in `opencog.scm` may still use placeholder hashes until their install issues are completed.
 
 ### 2. AtomSpace (`atomspace@5.0.3-1.86c848d`)
 
@@ -100,19 +100,33 @@ Network server for AtomSpace access:
 
 ```scheme
 (define-public cogserver
-  (package
-    (name "cogserver")
-    (version "0-2.ec5f3b9")
-    (source (git-checkout
-             (url "https://github.com/opencog/cogserver")
-             (commit "ec5f3b9")))
-    (build-system cmake-build-system)
-    (inputs `(("atomspace" ,atomspace)
-              ("cogutil" ,cogutil)))
-    (synopsis "OpenCog network server")
-    (description "Network server providing remote access to AtomSpace")
-    (home-page "https://github.com/opencog/cogserver")
-    (license lgpl2.1+)))
+  (let ((commit "ec5f3b9590db0f6a085b5d0320f5d3710e0f1635")
+        (revision "2"))
+    (package
+      (name "cogserver")
+      (version (git-version "0" revision commit)) ; 0-2.ec5f3b9
+      (source (origin
+                (method git-fetch)
+                (uri (git-reference
+                      (url "https://github.com/opencog/cogserver")
+                      (commit commit)))
+                (sha256
+                 (base32
+                  "1h0vcxb6n5dc654xqinqcxc7dxwcs6bsywgir8rhrqiykk760mzl"))))
+      (build-system cmake-build-system)
+      (inputs `(("atomspace" ,atomspace)
+                ("cogutil" ,cogutil)))
+      (synopsis "OpenCog network server")
+      (description "Network server providing remote access to AtomSpace")
+      (home-page "https://github.com/opencog/cogserver")
+      (license agpl3))))
+```
+
+Install this revision with:
+
+```bash
+guix install -f cogserver.scm
+guix install -L . cogserver@0-2.ec5f3b9
 ```
 
 ### 4. Attention (`attention@0-1.87d4367`)

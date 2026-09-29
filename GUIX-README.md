@@ -36,15 +36,18 @@ Inferno is a distributed operating system originally developed at Bell Labs. It 
    ./install.sh
    ```
 
-3. Install OpenCog CogUtil `2.0.3-1.b07b41b` and AtomSpace `5.0.3-1.86c848d`:
+3. Install OpenCog CogUtil `2.0.3-1.b07b41b`, AtomSpace `5.0.3-1.86c848d`,
+   and CogServer `0-2.ec5f3b9`:
    ```bash
    # File-based install of these exact revisions
    guix install -f cogutil.scm
    guix install -f atomspace.scm
+   guix install -f cogserver.scm
 
    # Module-based install (GNU Guix architecture: gnu/packages/opencog.scm)
    guix install -L . cogutil@2.0.3-1.b07b41b
    guix install -L . atomspace@5.0.3-1.86c848d
+   guix install -L . cogserver@0-2.ec5f3b9
    ```
 
 ### Install from Guix channels (future)
@@ -70,6 +73,7 @@ OpenCog packages are defined separately:
 - GNU Guix module: `gnu/packages/opencog.scm`
 - CogUtil (`cogutil@2.0.3-1.b07b41b`): `cogutil.scm`, https://github.com/opencog/cogutil at `b07b41b2eaf01627c78b27f1f28bb09ef7086f8e`
 - AtomSpace (`atomspace@5.0.3-1.86c848d`): `atomspace.scm`, https://github.com/opencog/atomspace at `86c848dfc7135b3c47deb581f8da54a60f6711c9`
+- CogServer (`cogserver@0-2.ec5f3b9`): `cogserver.scm`, https://github.com/opencog/cogserver at `ec5f3b9590db0f6a085b5d0320f5d3710e0f1635`
 
 ## Development Environment
 

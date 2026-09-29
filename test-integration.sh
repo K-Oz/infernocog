@@ -7,7 +7,7 @@ echo "Testing OpenCog + InfernoCog integration..."
 echo "Validating Scheme files:"
 
 # Check if files exist
-for file in opencog.scm.md inferno.scm.md plan9.scm.md opencog.scm plan9.scm cogutil.scm gnu/packages/opencog.scm; do
+for file in opencog.scm.md inferno.scm.md plan9.scm.md opencog.scm plan9.scm cogutil.scm atomspace.scm gnu/packages/opencog.scm; do
     if [ -f "$file" ]; then
         echo "✓ $file exists"
     else
@@ -60,6 +60,53 @@ else
     cogutil_ok=0
 fi
 if [ "$cogutil_ok" -ne 1 ]; then
+    exit 1
+fi
+
+echo "Checking atomspace@5.0.3-1.86c848d package definition:"
+atomspace_ok=1
+for file in atomspace.scm gnu/packages/opencog.scm opencog.scm; do
+    if grep -q '86c848dfc7135b3c47deb581f8da54a60f6711c9' "$file" && \
+       grep -q '0vxzhszb0z8081li38hid07a5axzxyflsmq1mcn4b1k4z1j8ggch' "$file"; then
+        echo "✓ $file pins atomspace commit 86c848d with a real source hash"
+    else
+        echo "✗ $file missing pinned atomspace@5.0.3-1.86c848d source"
+        atomspace_ok=0
+    fi
+done
+if grep -q '(git-version "5.0.3" revision commit)' atomspace.scm && \
+   grep -q '(git-version "5.0.3" revision commit)' gnu/packages/opencog.scm; then
+    echo "✓ git-version 5.0.3 revision 1 yields atomspace@5.0.3-1.86c848d"
+else
+    echo "✗ atomspace package is not using git-version 5.0.3"
+    atomspace_ok=0
+fi
+if grep -q '^atomspace$' atomspace.scm; then
+    echo "✓ atomspace.scm returns the atomspace package for guix install -f"
+else
+    echo "✗ atomspace.scm does not return the atomspace package"
+    atomspace_ok=0
+fi
+if grep -q '(define-module (gnu packages opencog)' gnu/packages/opencog.scm && \
+   grep -q '(define-public atomspace' gnu/packages/opencog.scm; then
+    echo "✓ gnu/packages/opencog.scm exports atomspace for guix install -L . atomspace@5.0.3-1.86c848d"
+else
+    echo "✗ gnu/packages/opencog.scm does not export atomspace"
+    atomspace_ok=0
+fi
+if python3 - <<'PY'
+commit = "86c848dfc7135b3c47deb581f8da54a60f6711c9"
+revision = "1"
+version = "5.0.3-" + revision + "." + commit[:7]
+raise SystemExit(0 if version == "5.0.3-1.86c848d" else 1)
+PY
+then
+    echo "✓ git-version 5.0.3 + revision 1 + commit 86c848d is atomspace@5.0.3-1.86c848d"
+else
+    echo "✗ computed atomspace version does not match 5.0.3-1.86c848d"
+    atomspace_ok=0
+fi
+if [ "$atomspace_ok" -ne 1 ]; then
     exit 1
 fi
 
@@ -125,6 +172,18 @@ if guix describe >/dev/null 2>&1; then
     else
         echo "? module-path cogutil@2.0.3-1.b07b41b may need Guix"
     fi
+
+    if guix build --dry-run -f atomspace.scm 2>/dev/null; then
+        echo "✓ atomspace.scm parses as atomspace@5.0.3-1.86c848d"
+    else
+        echo "? atomspace.scm parsing may need Guix package modules"
+    fi
+
+    if guix build --dry-run -L . atomspace@5.0.3-1.86c848d 2>/dev/null; then
+        echo "✓ guix install -L . atomspace@5.0.3-1.86c848d resolves"
+    else
+        echo "? module-path atomspace@5.0.3-1.86c848d may need Guix"
+    fi
     
     if guix environment --dry-run -m manifest.scm true 2>/dev/null; then
         echo "✓ manifest.scm parses correctly"
@@ -184,11 +243,14 @@ echo "  - plan9.scm.md: Plan 9 architecture principles"
 echo "  - plan9.scm: Loadable Plan 9 architecture module"
 echo "  - opencog.scm: Complete OpenCog package definitions"
 echo "  - cogutil.scm: Installable cogutil@2.0.3-1.b07b41b package"
-echo "  - gnu/packages/opencog.scm: GNU Guix module for cogutil"
+echo "  - atomspace.scm: Installable atomspace@5.0.3-1.86c848d package"
+echo "  - gnu/packages/opencog.scm: GNU Guix module for cogutil and atomspace"
 echo "  - manifest.scm: Updated development manifest"
 echo ""
 echo "To use the OpenCog stack:"
 echo "  guix install -f cogutil.scm    # Install cogutil@2.0.3-1.b07b41b"
 echo "  guix install -L . cogutil@2.0.3-1.b07b41b"
+echo "  guix install -f atomspace.scm  # Install atomspace@5.0.3-1.86c848d"
+echo "  guix install -L . atomspace@5.0.3-1.86c848d"
 echo "  guix install -f opencog.scm    # Install complete stack"
 echo "  guix shell -m manifest.scm     # Development environment"

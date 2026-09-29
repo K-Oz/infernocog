@@ -72,41 +72,45 @@ data structures.")
       (license (list agpl3 asl2.0)))))
 
 ;;; AtomSpace - The hypergraph database
+;;; Install: guix install -f atomspace.scm
+;;;          guix install -L . atomspace@5.0.3-1.86c848d
 (define-public atomspace
-  (package
-    (name "atomspace")
-    (version "5.0.3-1.86c848d")
-    (source (origin
-              (method git-fetch)
-              (uri (git-reference
-                    (url "https://github.com/opencog/atomspace")
-                    (commit "86c848d")))
-              (file-name (git-file-name name version))
-              (sha256
-               (base32
-                "0000000000000000000000000000000000000000000000000000"))))
-    (build-system cmake-build-system)
-    (arguments
-     `(#:configure-flags
-       (list "-DCMAKE_BUILD_TYPE=Release"
-             "-DWITH_GUILE=TRUE"
-             "-DWITH_PYTHON=TRUE")
-       #:tests? #f))
-    (native-inputs
-     `(("pkg-config" ,pkg-config)))
-    (inputs
-     `(("cogutil" ,cogutil)
-       ("boost" ,boost)
-       ("guile" ,guile-3.0)
-       ("python" ,python)
-       ("cxxtest" ,cxxtest)))
-    (synopsis "OpenCog hypergraph database")
-    (description
-     "AtomSpace is a hypergraph database for representing knowledge and
+  (let ((commit "86c848dfc7135b3c47deb581f8da54a60f6711c9")
+        (revision "1"))
+    (package
+      (name "atomspace")
+      (version (string-append "5.0.3-" revision "." (substring commit 0 7)))
+      (source (origin
+                (method git-fetch)
+                (uri (git-reference
+                      (url "https://github.com/opencog/atomspace")
+                      (commit commit)))
+                (file-name (git-file-name name version))
+                (sha256
+                 (base32
+                  "0vxzhszb0z8081li38hid07a5axzxyflsmq1mcn4b1k4z1j8ggch"))))
+      (build-system cmake-build-system)
+      (arguments
+       `(#:configure-flags
+         (list "-DCMAKE_BUILD_TYPE=Release"
+               "-DWITH_GUILE=TRUE"
+               "-DWITH_PYTHON=TRUE")
+         #:tests? #f))  ; Tests require cxxtest binaries
+      (native-inputs
+       `(("pkg-config" ,pkg-config)
+         ("cxxtest" ,cxxtest)))
+      (inputs
+       `(("cogutil" ,cogutil)
+         ("boost" ,boost)
+         ("guile" ,guile-3.0)
+         ("python" ,python)))
+      (synopsis "OpenCog hypergraph database")
+      (description
+       "AtomSpace is a hypergraph database for representing knowledge and
 relationships in OpenCog.  It provides storage, indexing, and pattern
 matching capabilities for cognitive processing.")
-    (home-page "https://github.com/opencog/atomspace")
-    (license lgpl2.1+)))
+      (home-page "https://github.com/opencog/atomspace")
+      (license agpl3))))
 
 ;;; CogServer - Network server for AtomSpace
 (define-public cogserver

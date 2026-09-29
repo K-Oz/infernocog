@@ -31,20 +31,34 @@ Foundational utilities and data structures for OpenCog:
 
 ```scheme
 (define-public cogutil
-  (package
-    (name "cogutil")
-    (version "2.0.3-1.b07b41b")
-    (source (git-checkout
-             (url "https://github.com/opencog/cogutil")
-             (commit "b07b41b")))
-    (build-system cmake-build-system)
-    (synopsis "OpenCog utilities library")
-    (description "Foundational utilities and data structures for OpenCog framework")
-    (home-page "https://github.com/opencog/cogutil")
-    (license lgpl2.1+)))
+  (let ((commit "b07b41b2eaf01627c78b27f1f28bb09ef7086f8e")
+        (revision "1"))
+    (package
+      (name "cogutil")
+      (version (git-version "2.0.3" revision commit)) ; 2.0.3-1.b07b41b
+      (source (origin
+                (method git-fetch)
+                (uri (git-reference
+                      (url "https://github.com/opencog/cogutil")
+                      (commit commit)))
+                (sha256
+                 (base32
+                  "1ymmcrinp0prlxsmxmwdjjl4kgaj7wzq39d5b1q2apgg94yfdhqb"))))
+      (build-system cmake-build-system)
+      (synopsis "OpenCog utilities library")
+      (description "Foundational utilities and data structures for OpenCog framework")
+      (home-page "https://github.com/opencog/cogutil")
+      (license (list agpl3 asl2.0)))))
 ```
 
-**Note**: The SHA256 hashes in the actual package definitions are currently placeholders (all zeros) and must be updated with correct values for production use.
+Install this revision with:
+
+```bash
+guix install -f cogutil.scm
+guix install -L . cogutil@2.0.3-1.b07b41b
+```
+
+**Note**: The SHA256 hash for `cogutil@2.0.3-1.b07b41b` is the GNU Guix git-fetch checksum. Other OpenCog packages in `opencog.scm` may still use placeholder hashes until their install issues are completed.
 
 ### 2. AtomSpace (`atomspace@5.0.3-1.86c848d`)
 
@@ -221,9 +235,10 @@ For developing OpenCog applications on InfernoCog:
 git clone https://github.com/opencog/cogutil
 cd cogutil && git log --oneline -n 5  # Get latest commit
 
-# Update opencog.scm with new commit hash
+# Update cogutil.scm / gnu/packages/opencog.scm with new commit hash
 # Rebuild and test
-guix build cogutil -f opencog.scm
+guix build -f cogutil.scm
+guix build -L . cogutil@2.0.3-1.b07b41b
 ```
 
 ## Troubleshooting

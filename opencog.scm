@@ -36,37 +36,40 @@
     (license lgpl3+)))
 
 ;;; CogUtil - Foundational utilities for OpenCog
+;;; Install: guix install -f cogutil.scm
+;;;          guix install -L . cogutil@2.0.3-1.b07b41b
 (define-public cogutil
-  (package
-    (name "cogutil")
-    (version "2.0.3-1.b07b41b")
-    (source (origin
-              (method git-fetch)
-              (uri (git-reference
-                    (url "https://github.com/opencog/cogutil")
-                    (commit "b07b41b")))
-              (file-name (git-file-name name version))
-              (sha256
-               (base32
-                "0000000000000000000000000000000000000000000000000000"))))
-    (build-system cmake-build-system)
-    (arguments
-     `(#:configure-flags
-       (list "-DCMAKE_BUILD_TYPE=Release"
-             "-DCUNIT_FOUND=TRUE")
-       #:tests? #f))  ; Tests require network access
-    (native-inputs
-     `(("pkg-config" ,pkg-config)))
-    (inputs
-     `(("boost" ,boost)
-       ("cxxtest" ,cxxtest)))
-    (synopsis "OpenCog utilities library")
-    (description
-     "CogUtil provides foundational utilities and data structures for the
+  (let ((commit "b07b41b2eaf01627c78b27f1f28bb09ef7086f8e")
+        (revision "1"))
+    (package
+      (name "cogutil")
+      (version (string-append "2.0.3-" revision "." (substring commit 0 7)))
+      (source (origin
+                (method git-fetch)
+                (uri (git-reference
+                      (url "https://github.com/opencog/cogutil")
+                      (commit commit)))
+                (file-name (git-file-name name version))
+                (sha256
+                 (base32
+                  "1ymmcrinp0prlxsmxmwdjjl4kgaj7wzq39d5b1q2apgg94yfdhqb"))))
+      (build-system cmake-build-system)
+      (arguments
+       `(#:configure-flags
+         (list "-DCMAKE_BUILD_TYPE=Release")
+         #:tests? #f))  ; Tests require cxxtest binaries
+      (native-inputs
+       `(("pkg-config" ,pkg-config)
+         ("cxxtest" ,cxxtest)))
+      (inputs
+       `(("boost" ,boost)))
+      (synopsis "OpenCog utilities library")
+      (description
+       "CogUtil provides foundational utilities and data structures for the
 OpenCog framework, including logging, configuration management, and basic
 data structures.")
-    (home-page "https://github.com/opencog/cogutil")
-    (license lgpl2.1+)))
+      (home-page "https://github.com/opencog/cogutil")
+      (license (list agpl3 asl2.0)))))
 
 ;;; AtomSpace - The hypergraph database
 (define-public atomspace

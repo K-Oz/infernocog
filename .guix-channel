@@ -1,0 +1,3 @@
+(channel
+  (name 'infernocog)
+  (url "https://github.com/K-Oz/infernocog.git"))

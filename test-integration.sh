@@ -7,7 +7,7 @@ echo "Testing OpenCog + InfernoCog integration..."
 echo "Validating Scheme files:"
 
 # Check if files exist
-for file in opencog.scm.md inferno.scm.md plan9.scm.md opencog.scm plan9.scm; do
+for file in opencog.scm.md inferno.scm.md plan9.scm.md opencog.scm plan9.scm cogutil.scm gnu/packages/opencog.scm; do
     if [ -f "$file" ]; then
         echo "✓ $file exists"
     else
@@ -15,6 +15,53 @@ for file in opencog.scm.md inferno.scm.md plan9.scm.md opencog.scm plan9.scm; do
         exit 1
     fi
 done
+
+echo "Checking cogutil@2.0.3-1.b07b41b package definition:"
+cogutil_ok=1
+for file in cogutil.scm gnu/packages/opencog.scm opencog.scm; do
+    if grep -q 'b07b41b2eaf01627c78b27f1f28bb09ef7086f8e' "$file" && \
+       grep -q '1ymmcrinp0prlxsmxmwdjjl4kgaj7wzq39d5b1q2apgg94yfdhqb' "$file"; then
+        echo "✓ $file pins cogutil commit b07b41b with a real source hash"
+    else
+        echo "✗ $file missing pinned cogutil@2.0.3-1.b07b41b source"
+        cogutil_ok=0
+    fi
+done
+if grep -q '(git-version "2.0.3" revision commit)' cogutil.scm && \
+   grep -q '(git-version "2.0.3" revision commit)' gnu/packages/opencog.scm; then
+    echo "✓ git-version 2.0.3 revision 1 yields cogutil@2.0.3-1.b07b41b"
+else
+    echo "✗ cogutil package is not using git-version 2.0.3"
+    cogutil_ok=0
+fi
+if grep -q '^cogutil$' cogutil.scm; then
+    echo "✓ cogutil.scm returns the cogutil package for guix install -f"
+else
+    echo "✗ cogutil.scm does not return the cogutil package"
+    cogutil_ok=0
+fi
+if grep -q '(define-module (gnu packages opencog)' gnu/packages/opencog.scm && \
+   grep -q '(define-public cogutil' gnu/packages/opencog.scm; then
+    echo "✓ gnu/packages/opencog.scm exports cogutil for guix install -L . cogutil@2.0.3-1.b07b41b"
+else
+    echo "✗ gnu/packages/opencog.scm is not a loadable Guix module"
+    cogutil_ok=0
+fi
+if python3 - <<'PY'
+commit = "b07b41b2eaf01627c78b27f1f28bb09ef7086f8e"
+revision = "1"
+version = "2.0.3-" + revision + "." + commit[:7]
+raise SystemExit(0 if version == "2.0.3-1.b07b41b" else 1)
+PY
+then
+    echo "✓ git-version 2.0.3 + revision 1 + commit b07b41b is cogutil@2.0.3-1.b07b41b"
+else
+    echo "✗ computed cogutil version does not match 2.0.3-1.b07b41b"
+    cogutil_ok=0
+fi
+if [ "$cogutil_ok" -ne 1 ]; then
+    exit 1
+fi
 
 echo "Checking plan9.scm architecture exports:"
 if grep -q "(define (plan9-architecture-ok?)" plan9.scm && \
@@ -65,6 +112,18 @@ if guix describe >/dev/null 2>&1; then
         echo "✓ guix.scm parses correctly"
     else
         echo "? guix.scm parsing may need dependencies"
+    fi
+
+    if guix build --dry-run -f cogutil.scm 2>/dev/null; then
+        echo "✓ cogutil.scm parses as cogutil@2.0.3-1.b07b41b"
+    else
+        echo "? cogutil.scm parsing may need Guix package modules"
+    fi
+
+    if guix build --dry-run -L . cogutil@2.0.3-1.b07b41b 2>/dev/null; then
+        echo "✓ guix install -L . cogutil@2.0.3-1.b07b41b resolves"
+    else
+        echo "? module-path cogutil@2.0.3-1.b07b41b may need Guix"
     fi
     
     if guix environment --dry-run -m manifest.scm true 2>/dev/null; then
@@ -124,8 +183,12 @@ echo "  - inferno.scm.md: Inferno OS architecture documentation"
 echo "  - plan9.scm.md: Plan 9 architecture principles"
 echo "  - plan9.scm: Loadable Plan 9 architecture module"
 echo "  - opencog.scm: Complete OpenCog package definitions"
+echo "  - cogutil.scm: Installable cogutil@2.0.3-1.b07b41b package"
+echo "  - gnu/packages/opencog.scm: GNU Guix module for cogutil"
 echo "  - manifest.scm: Updated development manifest"
 echo ""
 echo "To use the OpenCog stack:"
+echo "  guix install -f cogutil.scm    # Install cogutil@2.0.3-1.b07b41b"
+echo "  guix install -L . cogutil@2.0.3-1.b07b41b"
 echo "  guix install -f opencog.scm    # Install complete stack"
 echo "  guix shell -m manifest.scm     # Development environment"

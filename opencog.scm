@@ -113,38 +113,43 @@ matching capabilities for cognitive processing.")
       (license agpl3))))
 
 ;;; CogServer - Network server for AtomSpace
+;;; Install: guix install -f cogserver.scm
+;;;          guix install -L . cogserver@0-2.ec5f3b9
 (define-public cogserver
-  (package
-    (name "cogserver")
-    (version "0-2.ec5f3b9")
-    (source (origin
-              (method git-fetch)
-              (uri (git-reference
-                    (url "https://github.com/opencog/cogserver")
-                    (commit "ec5f3b9")))
-              (file-name (git-file-name name version))
-              (sha256
-               (base32
-                "0000000000000000000000000000000000000000000000000000"))))
-    (build-system cmake-build-system)
-    (arguments
-     `(#:configure-flags
-       (list "-DCMAKE_BUILD_TYPE=Release")
-       #:tests? #f))
-    (native-inputs
-     `(("pkg-config" ,pkg-config)))
-    (inputs
-     `(("atomspace" ,atomspace)
-       ("cogutil" ,cogutil)
-       ("boost" ,boost)
-       ("cxxtest" ,cxxtest)))
-    (synopsis "OpenCog network server")
-    (description
-     "CogServer provides network access to OpenCog AtomSpace through a
+  (let ((commit "ec5f3b9590db0f6a085b5d0320f5d3710e0f1635")
+        (revision "2"))
+    (package
+      (name "cogserver")
+      (version (string-append "0-" revision "." (substring commit 0 7)))
+      (source (origin
+                (method git-fetch)
+                (uri (git-reference
+                      (url "https://github.com/opencog/cogserver")
+                      (commit commit)))
+                (file-name (git-file-name name version))
+                (sha256
+                 (base32
+                  "1h0vcxb6n5dc654xqinqcxc7dxwcs6bsywgir8rhrqiykk760mzl"))))
+      (build-system cmake-build-system)
+      (arguments
+       `(#:configure-flags
+         (list "-DCMAKE_BUILD_TYPE=Release")
+         #:tests? #f))
+      (native-inputs
+       `(("pkg-config" ,pkg-config)
+         ("cxxtest" ,cxxtest)))
+      (inputs
+       `(("atomspace" ,atomspace)
+         ("cogutil" ,cogutil)
+         ("boost" ,boost)
+         ("guile" ,guile-3.0)))
+      (synopsis "OpenCog network server")
+      (description
+       "CogServer provides network access to OpenCog AtomSpace through a
 command-line interface and module system.  It enables distributed access
 to cognitive knowledge bases.")
-    (home-page "https://github.com/opencog/cogserver")
-    (license lgpl2.1+)))
+      (home-page "https://github.com/opencog/cogserver")
+      (license agpl3))))
 
 ;;; Attention - Attention allocation mechanisms
 (define-public attention

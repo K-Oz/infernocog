@@ -1,35 +1,31 @@
-;;; GNU Guix --- Functional package management for GNU
-;;; Copyright © 2020 Ricardo Wurmus <rekado@elephly.net>
+;;; GNU Guix package definition for cogserver@0-2.ec5f3b9
 ;;;
-;;; This file follows the GNU Guix (gnu packages opencog) architecture
-;;; so InfernoCog can provide:
-;;;   guix install cogutil@2.0.3-1.b07b41b
-;;;   guix install atomspace@5.0.3-1.86c848d
+;;; Install this exact OpenCog CogServer revision with:
+;;;
+;;;   guix install -f cogserver.scm
+;;;
+;;; After this module is on GUIX_PACKAGE_PATH (or via `guix install -L .`):
+;;;
 ;;;   guix install cogserver@0-2.ec5f3b9
 ;;;
-;;; This file is free software; you can redistribute it and/or modify it
-;;; under the terms of the GNU General Public License as published by
-;;; the Free Software Foundation; either version 3 of the License, or (at
-;;; your option) any later version.
+;;; Source: https://github.com/opencog/cogserver @ ec5f3b9590db0f6a085b5d0320f5d3710e0f1635
 
-(define-module (gnu packages opencog)
-  #:use-module (gnu packages)
-  #:use-module (gnu packages boost)
-  #:use-module (gnu packages check)
-  #:use-module (gnu packages databases)
-  #:use-module (gnu packages guile)
-  #:use-module (gnu packages multiprecision)
-  #:use-module (gnu packages pkg-config)
-  #:use-module (gnu packages python)
-  #:use-module ((guix licenses) #:prefix license:)
-  #:use-module (guix packages)
-  #:use-module (guix git-download)
-  #:use-module (guix build-system cmake)
-  #:use-module (guix utils))
+(use-modules (guix packages)
+             (guix git-download)
+             (guix build-system cmake)
+             (guix utils)
+             (guix licenses)
+             (gnu packages boost)
+             (gnu packages check)
+             (gnu packages databases)
+             (gnu packages guile)
+             (gnu packages multiprecision)
+             (gnu packages pkg-config)
+             (gnu packages python))
 
-(define-public cogutil
-  ;; The last release was in 2016.  Other OpenCog packages require a later
-  ;; version.  git-version yields cogutil@2.0.3-1.b07b41b.
+;; CogUtil is a required input.  Same pin as cogutil@2.0.3-1.b07b41b so
+;; `guix install -f cogserver.scm` is self-contained.
+(define cogutil
   (let ((commit "b07b41b2eaf01627c78b27f1f28bb09ef7086f8e")
         (revision "1"))
     (package
@@ -57,18 +53,15 @@
          ("pkg-config" ,pkg-config)))
       (home-page "https://github.com/opencog/cogutil/")
       (synopsis "Low-level C++ programming utilities used by OpenCog components")
-      (description "The OpenCog utilities is a miscellaneous collection of C++
-utilities use for typical programming tasks in multiple OpenCog projects.
-These include thread-safe queues, stacks and sets; an asynchronous method
-caller; a thread-safe resource pool; thread-safe backtrace printing;
-high-performance signal-slot; random tournament selection; and OS portability
-layers.")
-      ;; Either of these licenses.
-      (license (list license:agpl3 license:asl2.0)))))
+      (description
+       "CogUtil provides foundational utilities and data structures for the
+OpenCog framework, including logging, configuration management, thread-safe
+queues, stacks and sets, and OS portability layers.")
+      (license (list agpl3 asl2.0)))))
 
-(define-public atomspace
-  ;; The last release was in 2016 and doesn't build with our Boost package.
-  ;; git-version yields atomspace@5.0.3-1.86c848d.
+;; AtomSpace is a required input.  Same pin as atomspace@5.0.3-1.86c848d so
+;; `guix install -f cogserver.scm` is self-contained.
+(define atomspace
   (let ((commit "86c848dfc7135b3c47deb581f8da54a60f6711c9")
         (revision "1"))
     (package
@@ -102,13 +95,14 @@ layers.")
          ("pkg-config" ,pkg-config)))
       (home-page "https://github.com/opencog/atomspace/")
       (synopsis "OpenCog hypergraph database, query system and rule engine")
-      (description "The OpenCog AtomSpace is an in-RAM @dfn{knowledge
-representation} (KR) database, an associated query engine and graph-re-writing
-system, and a rule-driven inferencing engine that can apply and manipulate
-sequences of rules to perform reasoning.  It is a layer that sits on top of
-ordinary distributed (graph) databases, providing a large variety of advanced
-features not otherwise available.")
-      (license license:agpl3))))
+      (description
+       "The OpenCog AtomSpace is an in-RAM knowledge representation (KR)
+database, an associated query engine and graph-re-writing system, and a
+rule-driven inferencing engine that can apply and manipulate sequences of
+rules to perform reasoning.  It is a layer that sits on top of ordinary
+distributed (graph) databases, providing a large variety of advanced features
+not otherwise available.")
+      (license agpl3))))
 
 (define-public cogserver
   ;; There are no releases.
@@ -144,8 +138,12 @@ features not otherwise available.")
          ("pkg-config" ,pkg-config)))
       (home-page "https://github.com/opencog/cogserver/")
       (synopsis "OpenCog network server")
-      (description "The OpenCog Cogserver is a network and job server for the
-OpenCog framework.  It provides network access to AtomSpace through a
-command-line interface and module system, enabling distributed access to
-cognitive knowledge bases.")
-      (license license:agpl3))))
+      (description
+       "The OpenCog Cogserver is a network and job server for the OpenCog
+framework.  It provides network access to AtomSpace through a command-line
+interface and module system, enabling distributed access to cognitive
+knowledge bases.")
+      (license agpl3))))
+
+;; Return cogserver so `guix install -f cogserver.scm` installs this version.
+cogserver

@@ -12,6 +12,20 @@ Plan 9 from Bell Labs represents a clean, distributed computing architecture tha
 - **Process Model**: Lightweight processes with message passing
 - **UTF-8 Throughout**: Unicode support at the system level
 
+The loadable Scheme implementation of this architecture lives in [`plan9.scm`](plan9.scm). Inferno's hosted Plan 9 compatibility layer is `lib9` (see [`docs/lib9.md`](docs/lib9.md)); Guix builds it through [`guix.scm`](guix.scm).
+
+## Prerequisites
+
+Before using the Plan 9 architecture with InfernoCog, ensure you have:
+
+- **GNU Guix**: Package manager for reproducible builds
+- **Git**: Version control system for source access
+- **GCC**: C compiler for `lib9` and hosted Inferno
+- **Guile**: Scheme interpreter (≥ 3.0) for `plan9.scm`
+- **Inferno tools**: `mk` and `lib9` from this repository (`guix install -f guix.scm`)
+- **9P access**: Kernel 9P support or a user-space 9P client for AtomSpace mounts
+- **Optional Plan 9 userland**: `9base` or plan9port utilities (`bind`, `mount`, `rc`) when not running native Plan 9
+
 ## Core Architectural Principles
 
 ### Resource Abstraction
@@ -43,6 +57,35 @@ All system interaction through file operations:
     (mount "mount /net/cs /n/cs")    ; Mount network service
     (bind "bind /tmp /n/tmp")        ; Bind directory
     (unmount "unmount /n/service"))) ; Unmount service
+```
+
+## Guix Package Definition
+
+Plan 9 compatibility in InfernoCog is the `lib9` layer of the base package. The following definition matches [`guix.scm`](guix.scm) and [`inferno.scm.md`](inferno.scm.md):
+
+```scheme
+(define-public plan9-compat
+  (package
+    (name "plan9-compat")
+    (version "1.0.0")
+    (source (local-file "." "inferno-source" #:recursive? #t))
+    (build-system gnu-build-system)
+    (native-inputs
+     `(("lib9" ,(file-append infernocog-base "/lib/lib9.a"))
+       ("mk-tool" ,(file-append infernocog-base "/bin/mk"))))
+    (synopsis "Plan 9 compatibility layer for InfernoCog")
+    (description
+     "lib9 provides Plan 9 system-call interfaces, UTF-8/Rune text,
+9P conversions, and namespace primitives used by InfernoCog.")
+    (home-page "https://github.com/K-Oz/infernocog")
+    (license (list gpl2+ lgpl2.1+))))
+```
+
+Install the libraries that implement this architecture:
+
+```bash
+guix install -f guix.scm
+guile -c '(load "plan9.scm") (display (plan9-architecture-ok?)) (newline)'
 ```
 
 ## OpenCog Integration Architecture
@@ -317,6 +360,126 @@ CSP-style communication between processes:
      (packets "/net/ether")
      (protocols "/net/log"))))
 ```
+
+## Usage Examples
+
+### Namespace and 9P
+
+```bash
+# Mount CogServer AtomSpace as a 9P file tree
+mount -t 9p tcp!localhost!17001 /n/atomspace
+
+# Private working view of atoms
+bind /n/atomspace /n/personal-atoms
+bind -a /srv/global-atoms /n/personal-atoms
+
+# File-based atom operations
+cat /n/atomspace/stats/atom-count
+echo "ConceptNode cat" > /n/atomspace/atoms/concept/cat
+echo "pattern (Inheritance (Concept cat) (Variable \$x))" > /n/atomspace/queries/ctl
+cat /n/atomspace/queries/results
+```
+
+### Scheme architecture module
+
+```bash
+# Load architecture definitions
+guile -l plan9.scm
+
+# Validate the architecture from a script
+guile -c '(load "plan9.scm")
+         (exit (if (plan9-architecture-ok?) 0 1))'
+```
+
+### Distributed nodes
+
+```bash
+mount tcp!node1!17001 /n/atoms1
+mount tcp!node2!17001 /n/atoms2
+echo "reason-batch-1" > /n/atoms1/queries/ctl
+echo "reason-batch-2" > /n/atoms2/queries/ctl
+```
+
+## Testing
+
+After installing InfernoCog and loading the architecture module:
+
+```bash
+# Architecture module loads and validates
+guile -c '(load "plan9.scm") (display (plan9-architecture-ok?)) (newline)'
+
+# Integration checks (markdown structure, 9P/AtomSpace concepts)
+./test-integration.sh
+
+# lib9 present after a Guix or local build
+test -f Linux/386/lib/lib9.a && echo "lib9 ok"
+```
+
+Expected `plan9.scm` checks:
+
+- Resource types include `files`, `namespaces`, and `protocols`
+- AtomSpace tree is rooted at `/n/atomspace`
+- CogServer service announces protocol `9p` on port `17001`
+
+## Development
+
+1. **Set up development environment**:
+   ```bash
+   guix shell -m manifest.scm
+   ```
+
+2. **Edit architecture and documentation together**:
+   - Keep alist keys in `plan9.scm` aligned with examples in `plan9.scm.md`
+   - Rebuild Plan 9 compatibility: `mk lib9/install`
+   - Re-run `./test-integration.sh`
+
+3. **Native Plan 9 hosts** use the `Plan9/` tree (`SYSHOST=Plan9`) instead of `Linux/386`
+
+### Development workflow
+
+```bash
+# Load and inspect architecture
+guile -c '(load "plan9.scm") (display plan9-resources) (newline)'
+
+# Build the compatibility library
+export ROOT=$(pwd) SYSHOST=Linux SYSTARG=Linux OBJTYPE=386
+sh makemk.sh
+mk lib9/install
+```
+
+## Troubleshooting
+
+### Common issues
+
+**`plan9.scm` fails to load**:
+- Install Guile ≥ 3.0 (`guix install guile`)
+- Run commands from the repository root so the load path finds `plan9.scm`
+
+**9P mount of CogServer fails**:
+- Confirm CogServer is listening on port 17001
+- Check that the host has 9P (`mount -t 9p`) or a user-space 9P client
+- Verify the dial string (`tcp!host!17001`)
+
+**lib9 missing or build errors**:
+- Run `sh makemk.sh` before `mk lib9/install`
+- On 64-bit Linux, `guix.scm` strips `-m32`; match that if building by hand
+- Confirm `mkconfig` has `SYSHOST=Linux` (or `Plan9` on native Plan 9)
+
+**Namespace bind/mount has no effect**:
+- Inferno/Plan 9 binds are per-process; they do not change a Unix global namespace
+- Use Inferno's `bind`/`mount` inside the emulator, not only host `mount`
+
+**SHA256 or Guix parse errors**:
+```bash
+guix build --dry-run -f guix.scm
+```
+
+## Related Documentation
+
+- [OpenCog Architecture](opencog.scm.md) — cognitive stack and Guix packages
+- [Inferno Architecture](inferno.scm.md) — hosted Inferno OS and OpenCog services
+- [lib9](docs/lib9.md) — Plan 9 compatibility library API
+- [AGI Integration](docs/agi-integration.md) — file-tree mapping for AtomSpace and reasoning
 
 ## Benefits of Plan 9 Architecture
 

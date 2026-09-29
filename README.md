@@ -125,7 +125,7 @@ echo "reason-batch-2" > /n/atoms2/reasoning/queue
 
 - [OpenCog Architecture](opencog.scm.md) - OpenCog cognitive architecture details
 - [Inferno Architecture](inferno.scm.md) - Inferno OS and integration points
-- [Plan 9 Architecture](plan9.scm.md) - Plan 9 design principles and benefits
+- [Plan 9 Architecture](plan9.scm.md) — Plan 9 design principles; loadable module: [plan9.scm](plan9.scm)
 
 ## Supported Platforms
 

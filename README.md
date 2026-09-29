@@ -38,9 +38,11 @@ Install the complete OpenCog stack:
 # Complete cognitive architecture stack
 guix install -f opencog.scm
 
-# OpenCog utilities at the pinned GNU Guix revision
+# OpenCog utilities and AtomSpace at the pinned GNU Guix revisions
 guix install -f cogutil.scm
 guix install -L . cogutil@2.0.3-1.b07b41b
+guix install -f atomspace.scm
+guix install -L . atomspace@5.0.3-1.86c848d
 
 # Or just the Inferno base system
 guix install -f guix.scm

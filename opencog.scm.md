@@ -58,7 +58,7 @@ guix install -f cogutil.scm
 guix install -L . cogutil@2.0.3-1.b07b41b
 ```
 
-**Note**: The SHA256 hash for `cogutil@2.0.3-1.b07b41b` is the GNU Guix git-fetch checksum. Other OpenCog packages in `opencog.scm` may still use placeholder hashes until their install issues are completed.
+**Note**: The SHA256 hashes for `cogutil@2.0.3-1.b07b41b` and `atomspace@5.0.3-1.86c848d` are the GNU Guix git-fetch checksums. Other OpenCog packages in `opencog.scm` may still use placeholder hashes until their install issues are completed.
 
 ### 2. AtomSpace (`atomspace@5.0.3-1.86c848d`)
 
@@ -66,18 +66,32 @@ The hypergraph database at the core of OpenCog:
 
 ```scheme
 (define-public atomspace
-  (package
-    (name "atomspace")
-    (version "5.0.3-1.86c848d")
-    (source (git-checkout
-             (url "https://github.com/opencog/atomspace")
-             (commit "86c848d")))
-    (build-system cmake-build-system)
-    (inputs `(("cogutil" ,cogutil)))
-    (synopsis "OpenCog hypergraph database")
-    (description "AtomSpace is a hypergraph database for representing knowledge")
-    (home-page "https://github.com/opencog/atomspace")
-    (license lgpl2.1+)))
+  (let ((commit "86c848dfc7135b3c47deb581f8da54a60f6711c9")
+        (revision "1"))
+    (package
+      (name "atomspace")
+      (version (git-version "5.0.3" revision commit)) ; 5.0.3-1.86c848d
+      (source (origin
+                (method git-fetch)
+                (uri (git-reference
+                      (url "https://github.com/opencog/atomspace")
+                      (commit commit)))
+                (sha256
+                 (base32
+                  "0vxzhszb0z8081li38hid07a5axzxyflsmq1mcn4b1k4z1j8ggch"))))
+      (build-system cmake-build-system)
+      (inputs `(("cogutil" ,cogutil)))
+      (synopsis "OpenCog hypergraph database")
+      (description "AtomSpace is a hypergraph database for representing knowledge")
+      (home-page "https://github.com/opencog/atomspace")
+      (license agpl3))))
+```
+
+Install this revision with:
+
+```bash
+guix install -f atomspace.scm
+guix install -L . atomspace@5.0.3-1.86c848d
 ```
 
 ### 3. CogServer (`cogserver@0-2.ec5f3b9`)

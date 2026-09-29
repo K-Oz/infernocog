@@ -36,6 +36,15 @@ Inferno is a distributed operating system originally developed at Bell Labs. It 
    ./install.sh
    ```
 
+3. Install OpenCog CogUtil `2.0.3-1.b07b41b`:
+   ```bash
+   # File-based install of this exact revision
+   guix install -f cogutil.scm
+
+   # Module-based install (GNU Guix architecture: gnu/packages/opencog.scm)
+   guix install -L . cogutil@2.0.3-1.b07b41b
+   ```
+
 ### Install from Guix channels (future)
 
 Once this package is submitted to the Guix package collection, you will be able to install it with:
@@ -46,13 +55,19 @@ guix install opencog
 
 ## What's Included
 
-The package includes:
+The Inferno base package includes:
 
 - Essential Inferno libraries (lib9, libbio, libmath, libmp, libsec)
 - The `mk` build tool (Inferno's make system)
 - The `iyacc` parser generator
 - Header files for Inferno development
 - Documentation
+
+OpenCog CogUtil (`cogutil@2.0.3-1.b07b41b`) is packaged separately:
+
+- GNU Guix module: `gnu/packages/opencog.scm`
+- File-based install: `cogutil.scm`
+- Upstream source: https://github.com/opencog/cogutil at `b07b41b2eaf01627c78b27f1f28bb09ef7086f8e`
 
 ## Development Environment
 
